@@ -12,6 +12,8 @@ const SpeechEngine = (function () {
   let recognition = null;
   let sessionActive = false;
   let restarting = false;
+  let isPaused = false; // true while we've intentionally stopped recognition
+                        // (e.g. Speech Synthesis is talking) without ending the session
   let onResultCb = null;
   let onErrorCb = null;
   let currentLocale = null;
@@ -52,12 +54,13 @@ const SpeechEngine = (function () {
     rec.onend = () => {
       // The browser stopped recognition on its own. If our session is
       // still supposed to be active, restart — but never loop after the
-      // session has been explicitly ended.
-      if (sessionActive && !restarting) {
+      // session has been explicitly ended, and never auto-restart while
+      // we've intentionally paused it (e.g. Speech Synthesis is talking).
+      if (sessionActive && !restarting && !isPaused) {
         restarting = true;
         setTimeout(() => {
           restarting = false;
-          if (sessionActive) {
+          if (sessionActive && !isPaused) {
             try { recognition.start(); } catch (e) { /* already running */ }
           }
         }, 250);
@@ -71,6 +74,7 @@ const SpeechEngine = (function () {
     supported,
     ttsSupported,
     isActive: () => sessionActive,
+    isPaused: () => isPaused,
 
     /** Start (or resume) a continuous listening session. Call once per lesson/test session. */
     start(locale, onResult, onError) {
@@ -85,14 +89,35 @@ const SpeechEngine = (function () {
         recognition = build(locale);
         currentLocale = locale;
       }
+      isPaused = false;
       sessionActive = true;
       try { recognition.start(); } catch (e) { /* already started, fine */ }
       return true;
     },
 
+    /**
+     * Briefly stop listening without ending the session — used while
+     * Speech Synthesis is speaking, so recognition never picks up the
+     * app's own voice. Only one of recognition/synthesis is ever
+     * active at a time. Pair with resume().
+     */
+    pause() {
+      if (!sessionActive) return;
+      isPaused = true;
+      if (recognition) { try { recognition.stop(); } catch (e) {} }
+    },
+
+    /** Resume listening after pause(), if the session is still active. */
+    resume() {
+      if (!sessionActive) return;
+      isPaused = false;
+      if (recognition) { try { recognition.start(); } catch (e) { /* already running */ } }
+    },
+
     /** Permanently stop the session (e.g. lesson finished / user left). */
     stop() {
       sessionActive = false;
+      isPaused = false;
       if (recognition) { try { recognition.stop(); } catch (e) {} }
     },
 
