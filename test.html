@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test — Lingua Trail</title>
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="topbar">
+    <a class="back-link" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Exit test
+    </a>
+    <span class="brand" id="test-title-label">Test</span>
+  </div>
+
+  <!-- Question flow -->
+  <div id="test-flow">
+    <div class="test-header">
+      <div class="lesson-progress" style="margin:0">
+        <div class="bar"><span id="test-progress-fill" style="width:0%"></span></div>
+        <span class="count" id="test-progress-count">0 / 0</span>
+      </div>
+    </div>
+
+    <div class="test-question-panel" id="question-panel">
+      <span class="question-kind" id="question-kind-label">Speaking</span>
+      <p class="question-prompt" id="question-prompt-text">—</p>
+
+      <!-- speaking / recall -->
+      <div id="q-speech-area" hidden style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
+        <button class="mic-button" id="q-mic-button" aria-label="Microphone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        </button>
+        <p class="card-status" id="q-speech-status">Tap the mic to answer</p>
+      </div>
+
+      <!-- multiple choice / reverse translation -->
+      <div class="options-grid" id="q-options-area" hidden></div>
+
+      <!-- listening -->
+      <div id="q-listening-area" hidden style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
+        <button class="listen-audio-btn" id="q-listen-audio-btn" aria-label="Play audio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M19 5a9 9 0 010 14"/></svg>
+        </button>
+        <div class="options-grid" id="q-listening-options-area" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="test-results" hidden>
+    <div class="result-score">
+      <span class="big-score" id="result-big-score">0%</span>
+      <p class="sub" id="result-sub">0 / 0 correct</p>
+    </div>
+    <div class="result-categories" id="result-categories"></div>
+    <div id="mistake-section" hidden>
+      <p style="color:var(--ink-soft)">You missed <span id="mistake-count">0</span> sentence(s).</p>
+      <div class="mistake-list" id="mistake-list"></div>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-secondary" id="review-mistakes-btn" hidden>Review Mistakes</button>
+      <a class="btn btn-primary" href="index.html">Continue</a>
+    </div>
+  </div>
+
+  <!-- Mistake retrain (reuses the sentence-card flip UI) -->
+  <div id="retrain-flow" hidden>
+    <div class="lesson-progress">
+      <div class="bar"><span id="retrain-progress-fill" style="width:0%"></span></div>
+      <span class="count" id="retrain-progress-count">0 / 0</span>
+    </div>
+    <div class="card-stage">
+      <div class="sentence-card" id="retrain-card">
+        <div class="card-face card-front">
+          <p class="card-prompt" id="retrain-prompt-text">—</p>
+          <button class="mic-button" id="retrain-mic-button" aria-label="Microphone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+          </button>
+          <p class="card-status" id="retrain-status-text">Tap the mic to begin</p>
+        </div>
+        <div class="card-face card-back">
+          <p class="card-target" id="retrain-target-text">—</p>
+          <p class="card-english-echo" id="retrain-echo-text">—</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notice-panel" id="panel-unsupported" hidden>
+    <h2>This test needs speaking support</h2>
+    <p>Speaking questions aren't supported in this browser. Try Chrome or Edge, or ask for a text-only test in a future update.</p>
+    <a class="btn btn-secondary" href="index.html">Back to dashboard</a>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/progressEngine.js"></script>
+<script src="js/speechEngine.js"></script>
+<script src="js/lessonEngine.js"></script>
+<script src="js/testEngine.js"></script>
+<script src="js/testPage.js"></script>
+</body>
+</html>

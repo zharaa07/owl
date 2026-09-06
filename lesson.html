@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson — Lingua Trail</title>
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="topbar">
+    <a class="back-link" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Exit lesson
+    </a>
+    <span class="brand" id="lesson-title-label">Lesson</span>
+  </div>
+
+  <div class="lesson-progress" id="lesson-progress-wrap">
+    <div class="bar"><span id="progress-bar-fill" style="width:0%"></span></div>
+    <span class="count" id="progress-count">0 / 0</span>
+  </div>
+
+  <!-- Main practice card -->
+  <div class="card-stage" id="card-stage">
+    <div class="sentence-card" id="sentence-card">
+
+      <div class="card-face card-front">
+        <p class="card-prompt" id="card-prompt-text">—</p>
+        <button class="mic-button" id="mic-button" aria-label="Microphone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        </button>
+        <p class="card-status" id="card-status-text">Get ready…</p>
+      </div>
+
+      <div class="card-face card-back">
+        <p class="card-target" id="card-target-text">—</p>
+        <p class="card-english-echo" id="card-echo-text">—</p>
+        <button class="listen-btn" id="listen-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>
+          Hear it again
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Permission needed -->
+  <div class="notice-panel" id="panel-permission" hidden>
+    <h2>Microphone access needed</h2>
+    <p>Speaking practice needs your microphone to hear your Spanish. It's only used live — nothing is recorded.</p>
+    <button class="btn btn-primary" id="retry-permission-btn">Try again</button>
+  </div>
+
+  <!-- Unsupported browser -->
+  <div class="notice-panel" id="panel-unsupported" hidden>
+    <h2>Speaking practice isn't supported in this browser</h2>
+    <p>Try Chrome or Edge for speaking exercises. You can still review this lesson's sentences below.</p>
+    <a class="btn btn-secondary" href="index.html">Back to dashboard</a>
+  </div>
+
+  <!-- Lesson complete -->
+  <div class="notice-panel" id="panel-complete" hidden>
+    <h2>Lesson Complete 🎉</h2>
+    <p id="complete-summary">Nice work.</p>
+    <div class="action-row" style="width:100%">
+      <a class="btn btn-secondary" href="index.html">Dashboard</a>
+      <a class="btn btn-primary" id="next-lesson-btn" href="#">Next lesson</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/progressEngine.js"></script>
+<script src="js/speechEngine.js"></script>
+<script src="js/lessonEngine.js"></script>
+<script src="js/lessonPage.js"></script>
+</body>
+</html>

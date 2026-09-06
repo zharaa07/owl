@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lingua Trail — Learn Spanish by Speaking</title>
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="topbar">
+    <span class="brand">lingua<strong>trail</strong></span>
+  </div>
+
+  <section class="hero">
+    <div class="hero-lang">
+      <span class="flag" id="lang-flag">🇪🇸</span>
+      <div>
+        <h1 id="lang-name">Spanish</h1>
+      </div>
+      <span class="native" id="lang-native">Español</span>
+    </div>
+
+    <div class="progress-ring-row">
+      <div class="progress-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="track" cx="60" cy="60" r="52"></circle>
+          <circle class="fill" id="ring-fill" cx="60" cy="60" r="52" stroke-dasharray="327" stroke-dashoffset="327"></circle>
+        </svg>
+        <div class="value">
+          <span class="num" id="ring-percent">0%</span>
+          <span class="label">progress</span>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <span class="stat-num"><span id="stat-lessons">0</span></span>
+          <span class="stat-label" id="stat-lessons-label">of 0 lessons</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num"><span id="stat-sentences">0</span></span>
+          <span class="stat-label" id="stat-sentences-label">of 0 sentences</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-accuracy">0%</span>
+          <span class="stat-label">accuracy</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-speaking">0%</span>
+          <span class="stat-label">speaking</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="streak-chip" id="streak-chip" hidden>
+      <span>🔥</span> <span id="streak-count">0</span>&nbsp;Day Streak
+    </div>
+  </section>
+
+  <a class="continue-cta" id="continue-cta" href="#">
+    <div>
+      <div class="cta-title" id="continue-title">Continue learning</div>
+      <div class="cta-sentence" id="continue-sub">Start Lesson 1</div>
+    </div>
+    <span class="cta-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </span>
+  </a>
+
+  <div class="trail" id="trail"></div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/progressEngine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
