@@ -125,10 +125,34 @@ const SpeechEngine = (function () {
     speak(text, locale, onEnd) {
       if (!ttsSupported()) { if (onEnd) onEnd(); return; }
       window.speechSynthesis.cancel();
+
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = locale;
-      if (onEnd) utter.onend = onEnd;
-      window.speechSynthesis.speak(utter);
+
+      let done = false;
+      let fallbackTimer = null;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        if (onEnd) onEnd();
+      };
+      utter.onend = finish;
+      utter.onerror = finish;
+
+      // Safety net: some browsers silently drop an utterance — most often
+      // right after cancel() — and never fire onend/onerror at all. When
+      // the lesson is waiting on this callback to advance to the next
+      // card, that would hang the whole lesson forever. Never let a card
+      // get stuck: force the callback after a generous, length-based delay.
+      const estimatedMs = Math.max(1200, text.length * 90);
+      fallbackTimer = setTimeout(finish, estimatedMs);
+
+      // A short delay after cancel() avoids a known Chrome race where a
+      // speak() called immediately after cancel() is silently ignored.
+      setTimeout(() => {
+        try { window.speechSynthesis.speak(utter); } catch (e) { finish(); }
+      }, 50);
     }
   };
 })();
