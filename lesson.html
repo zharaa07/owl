@@ -49,27 +49,26 @@
     </div>
   </div>
 
-  <!-- Permission needed -->
-  <div class="notice-panel" id="panel-permission" hidden>
-    <h2>Microphone access needed</h2>
-    <p>Speaking practice needs your microphone to hear your Spanish. It's only used live — nothing is recorded.</p>
-    <button class="btn btn-primary" id="retry-permission-btn">Try again</button>
-  </div>
-
-  <!-- Unsupported browser -->
-  <div class="notice-panel" id="panel-unsupported" hidden>
-    <h2>Speaking practice isn't supported in this browser</h2>
-    <p>Try Chrome or Edge for speaking exercises. You can still review this lesson's sentences below.</p>
-    <a class="btn btn-secondary" href="index.html">Back to dashboard</a>
-  </div>
-
-  <!-- Lesson complete -->
-  <div class="notice-panel" id="panel-complete" hidden>
-    <h2>Lesson Complete 🎉</h2>
-    <p id="complete-summary">Nice work.</p>
-    <div class="action-row" style="width:100%">
+  <!-- Lesson result — shown in place, styled like the rest of this page -->
+  <div class="notice-panel" id="panel-complete" hidden style="align-items:stretch">
+    <div class="result-score" style="padding:0">
+      <span class="big-score" id="complete-big-score">0%</span>
+      <p class="sub" id="complete-sub">0 / 0 correct</p>
+    </div>
+    <div class="result-categories" id="complete-categories" style="grid-template-columns:repeat(2,1fr)">
+      <div class="cat">
+        <span class="cat-num" id="complete-correct-num">0</span>
+        <span class="cat-label">Correct</span>
+      </div>
+      <div class="cat">
+        <span class="cat-num" id="complete-wrong-num">0</span>
+        <span class="cat-label">Wrong</span>
+      </div>
+    </div>
+    <div class="action-row">
       <a class="btn btn-secondary" href="index.html">Dashboard</a>
-      <a class="btn btn-primary" id="next-lesson-btn" href="#">Next lesson</a>
+      <button class="btn btn-primary" id="review-mistakes-btn" hidden>Review Mistakes</button>
+      <a class="btn btn-primary" id="next-lesson-btn" href="#" hidden>Next lesson</a>
     </div>
   </div>
 
