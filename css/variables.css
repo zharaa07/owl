@@ -1,0 +1,62 @@
+/**
+ * Design language: a language-learner's travel notebook read at dusk.
+ * Deep indigo "notebook cover" background, warm paper cards, a single
+ * marigold accent reserved for the speaking/microphone moments, muted
+ * sage for correct and rust-clay for incorrect (never a stock green/red).
+ */
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Color */
+  --ink: #1B1F3B;
+  --ink-2: #262C52;
+  --ink-soft: #9BA0C7;
+  --paper: #FAF6EC;
+  --paper-dim: #EFE9DA;
+  --marigold: #E8A33D;
+  --marigold-deep: #C6821F;
+  --sage: #6E9080;
+  --sage-deep: #4F6B5D;
+  --clay: #C1502E;
+  --clay-deep: #973D22;
+  --line: rgba(250, 246, 236, 0.14);
+  --line-strong: rgba(250, 246, 236, 0.24);
+
+  /* Type */
+  --font-display: 'Newsreader', Georgia, serif;
+  --font-ui: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.875rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.375rem);
+  --step-2: clamp(1.5rem, 1.3rem + 1vw, 1.875rem);
+  --step-3: clamp(2rem, 1.6rem + 2vw, 2.75rem);
+
+  /* Space */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 20px 44px -22px rgba(9, 11, 28, 0.55);
+  --shadow-soft: 0 8px 20px -12px rgba(9, 11, 28, 0.45);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-med: 320ms;
+  --dur-slow: 520ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-med: 0ms; --dur-slow: 0ms; }
+}
