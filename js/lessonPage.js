@@ -159,7 +159,7 @@
   function beginSession() {
     if (started) return;
     started = true;
-    engine = createLessonEngine(lesson.sentences, lang, { onStateChange });
+    engine = createLessonEngine(lesson.sentences, lang, { onStateChange, lessonKey: lesson.key });
     engine.start();
   }
 
