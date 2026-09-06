@@ -133,6 +133,12 @@ function createLessonEngine(sentences, languageConfig, handlers) {
 
   function complete() {
     SpeechEngine.stop();
+    // Only the real lesson pass persists progress — a "Review Mistakes"
+    // retrain (created without a lessonKey) walks a subset of sentences
+    // and shouldn't re-touch lesson/streak state.
+    if (state.handlers.lessonKey) {
+      ProgressStorage.markLessonComplete(state.handlers.lessonKey);
+    }
     setState('completed', {
       total: state.sentences.length,
       correctCount: state.correctCount,
