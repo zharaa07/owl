@@ -4,20 +4,28 @@
  * Runs one lesson as an explicit state machine, one continuous
  * recognition session for the whole lesson (never per-card):
  *
- *   listening -> processing -> correct  -> revealing -> speaking -> (advance) -> listening (next)
+ *   listening -> processing -> correct  -> revealing -> speaking -> (auto-advance) -> listening (next)
  *                          \-> incorrect (attempt 1) -> listening (retry, same card)
- *                           \-> failed (attempt 2)   -> revealing -> speaking -> (advance) -> listening (next)
+ *                           \-> failed (attempt 2)   -> revealing -> speaking -> awaiting-continue -> (tap) -> listening (next)
+ *   listening --(5s silence)--> timeout -> revealing -> speaking -> (auto-advance) -> listening (next)
  *
  * "speaking" = Speech Synthesis is reading the correct answer aloud.
  * Recognition is explicitly paused for that window (SpeechEngine.pause())
  * and resumed right after, so the mic never hears the app's own voice.
  *
+ * Two different endings after showing the correct answer, on purpose:
+ *   - correct / silence-timeout -> keep the pace up, advance automatically.
+ *   - failed after 2 wrong attempts -> stay on the answer until the user
+ *     taps to continue (engine.continueAfterReveal()), so a real mistake
+ *     doesn't flash by before it's absorbed.
+ *
  * If recognition is unsupported or the mic permission is denied, the
  * lesson doesn't stop — it drops into a quiet "fallback" mode (no speech
  * verification, tap to reveal/continue) driven by the same state machine.
  *
- * The page (lessonPage.js) only reacts to onStateChange(state, context) —
- * it never pokes at speech recognition or timers directly.
+ * The page (lessonPage.js) only reacts to onStateChange(state, context)
+ * and calls the small set of methods below — it never pokes at speech
+ * recognition or timers directly.
  * -----------------------------------------------------------------------
  */
 const MAX_ATTEMPTS_PER_CARD = 2;
@@ -33,6 +41,8 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     mistakes: [],
     handlers: handlers || {}
   };
+
+  let silenceTimer = null;
 
   function setState(name, context) {
     state.current = name;
@@ -52,6 +62,21 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     }, extra || {});
   }
 
+  function clearSilenceTimer() {
+    if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+  }
+
+  function startSilenceTimer() {
+    clearSilenceTimer();
+    silenceTimer = setTimeout(handleSilenceTimeout, APP_CONFIG.silenceTimeoutMs);
+  }
+
+  /** Enter 'listening' and (re)arm the silence timeout in one place. */
+  function enterListening() {
+    setState('listening', cardContext());
+    startSilenceTimer();
+  }
+
   function start() {
     if (!SpeechEngine.supported()) {
       beginFallbackCard();
@@ -62,7 +87,7 @@ function createLessonEngine(sentences, languageConfig, handlers) {
       handleSpeechResult,
       handleSpeechError
     );
-    if (ok) setState('listening', cardContext());
+    if (ok) enterListening();
     else beginFallbackCard();
   }
 
@@ -70,6 +95,7 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     if (err === 'unsupported' || err === 'permission-denied') {
       // Degrade quietly instead of breaking the lesson: keep moving
       // through the cards without speech verification.
+      clearSilenceTimer();
       beginFallbackCard();
     }
     // other transient errors (no-speech, network blips) are ignored —
@@ -78,6 +104,7 @@ function createLessonEngine(sentences, languageConfig, handlers) {
 
   function handleSpeechResult(transcripts) {
     if (state.current !== 'listening') return; // ignore stray results mid-transition
+    clearSilenceTimer(); // the user said something — no longer silent
     setState('processing', cardContext());
 
     const sentence = currentSentence();
@@ -93,7 +120,7 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     const prevState = ProgressStorage.getSentenceState(sentence.id);
     ProgressStorage.setSentenceState(sentence.id, prevState === 'new' ? 'learning' : 'learned');
     setState('correct', cardContext());
-    revealThenSpeak(sentence);
+    revealThenAdvance(sentence);
   }
 
   function onIncorrect(sentence) {
@@ -101,22 +128,68 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     if (state.attempts < MAX_ATTEMPTS_PER_CARD) {
       setState('incorrect', cardContext());
       setTimeout(() => {
-        if (state.current === 'incorrect') setState('listening', cardContext());
+        if (state.current === 'incorrect') enterListening();
       }, APP_CONFIG.incorrectRetryDelayMs);
     } else {
       state.wrongCount += 1;
       state.mistakes.push(sentence.id);
       setState('failed', cardContext());
-      revealThenSpeak(sentence);
+      revealThenWaitForTap(sentence);
     }
   }
 
-  /** Flip the card to show the correct answer, speak it, then advance — pausing recognition while it talks. */
-  function revealThenSpeak(sentence) {
+  function handleSilenceTimeout() {
+    if (state.current !== 'listening') return;
+    const sentence = currentSentence();
+    state.wrongCount += 1;
+    state.mistakes.push(sentence.id);
+    setState('timeout', cardContext());
+    revealThenAdvance(sentence);
+  }
+
+  /** Correct answer / silence timeout: reveal, speak, then move on automatically. */
+  function revealThenAdvance(sentence) {
+    clearSilenceTimer();
     SpeechEngine.pause();
     setState('revealing', cardContext());
     setState('speaking', cardContext());
     SpeechEngine.speak(sentence.target, languageConfig.ttsLocale, () => advance());
+  }
+
+  /** Failed after MAX_ATTEMPTS_PER_CARD: reveal, speak, then hold until the user taps to continue. */
+  function revealThenWaitForTap(sentence) {
+    clearSilenceTimer();
+    SpeechEngine.pause();
+    setState('revealing', cardContext());
+    setState('speaking', cardContext());
+    SpeechEngine.speak(sentence.target, languageConfig.ttsLocale, () => {
+      setState('awaiting-continue', cardContext());
+    });
+  }
+
+  /** Called by the page when the user taps to move on from an 'awaiting-continue' card. */
+  function continueAfterReveal() {
+    if (state.current !== 'awaiting-continue') return;
+    advance();
+  }
+
+  /**
+   * Manual hint replay (🔄): speak the current card's correct pronunciation
+   * on demand. Only pauses/resumes recognition (and the silence timer) if
+   * we were actually listening — harmless to call at any time otherwise.
+   */
+  function speakHint() {
+    const wasListening = state.current === 'listening' || state.current === 'incorrect';
+    if (wasListening) {
+      SpeechEngine.pause();
+      clearSilenceTimer();
+    }
+    SpeechEngine.speak(currentSentence().target, languageConfig.ttsLocale, () => {
+      if (wasListening && (state.current === 'listening' || state.current === 'incorrect')) {
+        SpeechEngine.resume();
+        startSilenceTimer();
+      }
+    });
   }
 
   function advance() {
@@ -127,11 +200,12 @@ function createLessonEngine(sentences, languageConfig, handlers) {
       complete();
     } else {
       SpeechEngine.resume();
-      setState('listening', cardContext());
+      enterListening();
     }
   }
 
   function complete() {
+    clearSilenceTimer();
     SpeechEngine.stop();
     // Only the real lesson pass persists progress — a "Review Mistakes"
     // retrain (created without a lessonKey) walks a subset of sentences
@@ -178,8 +252,17 @@ function createLessonEngine(sentences, languageConfig, handlers) {
   }
 
   function stop() {
+    clearSilenceTimer();
     SpeechEngine.stop();
   }
 
-  return { start, stop, continueFallback, getState: () => state.current, getIndex: () => state.index };
+  return {
+    start,
+    stop,
+    continueFallback,
+    continueAfterReveal,
+    speakHint,
+    getState: () => state.current,
+    getIndex: () => state.index
+  };
 }
