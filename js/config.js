@@ -45,6 +45,10 @@ const APP_CONFIG = {
   correctRevealDelayMs: 1400,
   // Milliseconds an "incorrect" state is shown before listening resumes.
   incorrectRetryDelayMs: 900,
+  // If the user says nothing at all for this long while a card is
+  // listening, treat it like a missed attempt (reveal the answer and
+  // move on) instead of waiting forever.
+  silenceTimeoutMs: 5000,
 
   // Achievement thresholds (sentence-count based ones use SENTENCES.length
   // at unlock-check time, so they too scale with content automatically).
