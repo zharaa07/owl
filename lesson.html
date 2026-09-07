@@ -20,13 +20,23 @@
     <span class="brand" id="lesson-title-label">Lesson</span>
   </div>
 
-  <div class="lesson-progress" id="lesson-progress-wrap">
+  <!-- Review screen — shown before the lesson starts -->
+  <div id="lesson-review-screen">
+    <div class="test-header">
+      <span class="brand" id="lesson-review-title">Lesson</span>
+      <p style="color:var(--ink-soft)" id="lesson-review-subtitle">—</p>
+    </div>
+    <div class="review-list" id="lesson-review-list"></div>
+    <button class="btn btn-primary" id="start-lesson-btn" style="width:100%">Start Lesson</button>
+  </div>
+
+  <div class="lesson-progress" id="lesson-progress-wrap" hidden>
     <div class="bar"><span id="progress-bar-fill" style="width:0%"></span></div>
     <span class="count" id="progress-count">0 / 0</span>
   </div>
 
   <!-- Main practice card -->
-  <div class="card-stage" id="card-stage">
+  <div class="card-stage" id="card-stage" hidden>
     <div class="sentence-card" id="sentence-card">
 
       <div class="card-face card-front">
