@@ -249,6 +249,82 @@
 }
 .card-face.card-back { transform: rotateY(180deg); }
 
+/* ---------- Card result feedback (correct / delayed / wrong) ----------
+   Applied as a modifier on .sentence-card so it can color whichever face
+   is currently visible (front while answering/retrying, or the back once
+   revealed) without touching the flip mechanic itself. The one-shot pop /
+   shake / nudge animation and the badge glyph are front-face only, since
+   that's the instant the result actually lands — border and glow persist
+   through the reveal so the color still reads once the card has flipped.
+   Border/shadow/background only override the base .card-face look while
+   a state class is present; remove the class and the card is back to its
+   plain default, no lingering feedback color. */
+.sentence-card.is-correct .card-face {
+  border: 1.5px solid var(--sage);
+  box-shadow: 0 0 0 6px rgba(110, 144, 128, 0.15), var(--shadow-card);
+  background: linear-gradient(rgba(110, 144, 128, 0.07), rgba(110, 144, 128, 0.07)), var(--paper);
+}
+.sentence-card.is-wrong .card-face {
+  border: 1.5px solid var(--clay);
+  box-shadow: 0 0 0 6px rgba(193, 80, 46, 0.14), var(--shadow-card);
+  background: linear-gradient(rgba(193, 80, 46, 0.06), rgba(193, 80, 46, 0.06)), var(--paper);
+}
+.sentence-card.is-delayed .card-face {
+  border: 1.5px solid var(--marigold);
+  box-shadow: 0 0 0 6px rgba(232, 163, 61, 0.14), var(--shadow-card);
+  background: linear-gradient(rgba(232, 163, 61, 0.06), rgba(232, 163, 61, 0.06)), var(--paper);
+}
+
+.sentence-card.is-correct .card-front { animation: feedback-pop var(--dur-feedback) var(--ease); }
+.sentence-card.is-wrong .card-front { animation: feedback-shake var(--dur-feedback) var(--ease); }
+.sentence-card.is-delayed .card-front { animation: feedback-nudge var(--dur-feedback) var(--ease); }
+
+/* Badge glyph — not color alone: a shape + symbol per state. Front face
+   only, so it doesn't need to fight the back face's fixed rotateY(180deg). */
+.sentence-card.is-correct .card-front::after,
+.sentence-card.is-wrong .card-front::after,
+.sentence-card.is-delayed .card-front::after {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  animation: feedback-badge-in var(--dur-feedback) var(--ease);
+}
+.sentence-card.is-correct .card-front::after { content: '✓'; background: var(--sage); color: var(--paper); }
+.sentence-card.is-wrong .card-front::after { content: '✕'; background: var(--clay); color: var(--paper); }
+.sentence-card.is-delayed .card-front::after { content: '⏱'; background: var(--marigold); color: var(--ink); font-size: 0.8rem; }
+
+@keyframes feedback-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+@keyframes feedback-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes feedback-nudge {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+@keyframes feedback-badge-in {
+  0% { opacity: 0; transform: scale(0.5); }
+  60% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .card-prompt {
   font-family: var(--font-display);
   font-size: var(--step-2);
