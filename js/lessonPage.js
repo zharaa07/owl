@@ -27,7 +27,12 @@
     completeCorrectNum: document.getElementById('complete-correct-num'),
     completeWrongNum: document.getElementById('complete-wrong-num'),
     reviewMistakesBtn: document.getElementById('review-mistakes-btn'),
-    nextLessonBtn: document.getElementById('next-lesson-btn')
+    nextLessonBtn: document.getElementById('next-lesson-btn'),
+    previewScreen: document.getElementById('lesson-review-screen'),
+    previewTitle: document.getElementById('lesson-review-title'),
+    previewSubtitle: document.getElementById('lesson-review-subtitle'),
+    previewList: document.getElementById('lesson-review-list'),
+    startLessonBtn: document.getElementById('start-lesson-btn')
   };
 
   els.titleLabel.textContent = lesson.title;
@@ -47,16 +52,47 @@
   }
 
   function showCard() {
+    els.previewScreen.hidden = true;
     els.cardStage.hidden = false;
     els.progressWrap.hidden = false;
     els.panelComplete.hidden = true;
   }
 
   function showComplete() {
+    els.previewScreen.hidden = true;
     els.cardStage.hidden = true;
     els.progressWrap.hidden = true;
     els.panelComplete.hidden = false;
   }
+
+  // ---- Vocabulary preview: shown before the lesson starts, built purely
+  // from this lesson's own sentence list — no separate content, and it
+  // never touches the lesson/speech engines. ----
+  function renderLessonPreview() {
+    els.previewTitle.textContent = lesson.title;
+    els.previewSubtitle.textContent = `${lesson.sentences.length} sentences`;
+
+    // Plain text only — Speech Synthesis is created on demand per tap,
+    // never up front for the whole list.
+    els.previewList.innerHTML = lesson.sentences.map(s => `
+      <div class="review-card">
+        <div class="review-card-text">
+          <span class="review-card-target">${s.target}</span>
+          <span class="review-card-pron">${s.pronunciation}</span>
+          <span class="review-card-english">${s.english}</span>
+        </div>
+        <button class="review-listen-btn" data-target="${s.target.replace(/"/g, '&quot;')}" aria-label="Listen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  els.previewList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.review-listen-btn');
+    if (!btn) return;
+    SpeechEngine.speak(btn.dataset.target, lang.ttsLocale);
+  });
+
 
   function onStateChange(state, ctx) {
     switch (state) {
@@ -190,12 +226,15 @@
     engine.start();
   }
 
-  // Idle state before first tap.
-  els.promptText.textContent = lesson.sentences[0].english;
-  els.statusText.textContent = 'Tap the mic to begin';
-  els.hintBtn.hidden = true;
-  els.continueBtn.hidden = true;
-  updateProgress(0, lesson.sentences.length);
+  els.startLessonBtn.addEventListener('click', () => {
+    showCard();
+    // Idle state before first mic tap.
+    els.promptText.textContent = lesson.sentences[0].english;
+    els.statusText.textContent = 'Tap the mic to begin';
+    els.hintBtn.hidden = true;
+    els.continueBtn.hidden = true;
+    updateProgress(0, lesson.sentences.length);
+  }, { once: true });
 
   els.micButton.addEventListener('click', () => {
     if (!started) { beginSession(); return; }
@@ -215,4 +254,6 @@
   });
 
   window.addEventListener('beforeunload', () => { if (engine) engine.stop(); });
+
+  renderLessonPreview();
 })();
