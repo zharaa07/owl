@@ -16,9 +16,11 @@
     promptText: document.getElementById('card-prompt-text'),
     statusText: document.getElementById('card-status-text'),
     micButton: document.getElementById('mic-button'),
+    hintBtn: document.getElementById('hint-btn'),
     targetText: document.getElementById('card-target-text'),
     echoText: document.getElementById('card-echo-text'),
     listenBtn: document.getElementById('listen-btn'),
+    continueBtn: document.getElementById('continue-btn'),
     panelComplete: document.getElementById('panel-complete'),
     completeBigScore: document.getElementById('complete-big-score'),
     completeSub: document.getElementById('complete-sub'),
@@ -61,45 +63,65 @@
       case 'listening':
         showCard();
         els.card.classList.remove('is-flipped');
+        els.continueBtn.hidden = true;
         els.promptText.textContent = ctx.sentence.english;
         els.statusText.textContent = 'Listening…';
         els.statusText.className = 'card-status';
         setMicClass('is-listening');
+        els.hintBtn.hidden = false;
         updateProgress(ctx.index, ctx.total);
         break;
 
       case 'processing':
         setMicClass('is-processing');
         els.statusText.textContent = 'Checking…';
+        els.hintBtn.hidden = true;
         break;
 
       case 'correct':
         setMicClass('is-correct');
         els.statusText.textContent = 'Correct ✓';
         els.statusText.className = 'card-status is-correct';
+        els.hintBtn.hidden = true;
         break;
 
       case 'incorrect':
         setMicClass('is-incorrect');
         els.statusText.textContent = 'Try again';
         els.statusText.className = 'card-status is-incorrect';
+        els.hintBtn.hidden = false; // still their turn to speak — hint stays available
         break;
 
       case 'failed':
         setMicClass('is-incorrect');
         els.statusText.textContent = 'Incorrect';
         els.statusText.className = 'card-status is-incorrect';
+        els.hintBtn.hidden = true;
+        break;
+
+      case 'timeout':
+        setMicClass('is-incorrect');
+        els.statusText.textContent = 'No answer detected';
+        els.statusText.className = 'card-status is-incorrect';
+        els.hintBtn.hidden = true;
         break;
 
       case 'revealing':
         els.targetText.textContent = ctx.sentence.target;
         els.echoText.textContent = `${ctx.sentence.english} · ${ctx.sentence.pronunciation}`;
         els.card.classList.add('is-flipped');
+        els.continueBtn.hidden = true; // only shown once we reach 'awaiting-continue'
         break;
 
       case 'speaking':
         // Card is already flipped from 'revealing'; nothing else to update —
         // Speech Synthesis is playing and recognition is paused underneath.
+        break;
+
+      case 'awaiting-continue':
+        // Failed twice: the answer stays on screen until the user taps
+        // Continue — no auto-advance, so the mistake actually sinks in.
+        els.continueBtn.hidden = false;
         break;
 
       case 'advancing':
@@ -109,10 +131,12 @@
       case 'fallback-card':
         showCard();
         els.card.classList.remove('is-flipped');
+        els.continueBtn.hidden = true;
         els.promptText.textContent = ctx.sentence.english;
         els.statusText.textContent = 'Speaking practice unavailable — tap to continue';
         els.statusText.className = 'card-status';
         setMicClass('');
+        els.hintBtn.hidden = false;
         updateProgress(ctx.index, ctx.total);
         break;
 
@@ -159,18 +183,31 @@
   function beginSession() {
     if (started) return;
     started = true;
-    engine = createLessonEngine(lesson.sentences, lang, { onStateChange, lessonKey: lesson.key });
+    // A fresh shuffle every time the lesson starts, so it's not the same
+    // order on repeat runs.
+    const shuffled = Utils.shuffle(lesson.sentences);
+    engine = createLessonEngine(shuffled, lang, { onStateChange, lessonKey: lesson.key });
     engine.start();
   }
 
   // Idle state before first tap.
   els.promptText.textContent = lesson.sentences[0].english;
   els.statusText.textContent = 'Tap the mic to begin';
+  els.hintBtn.hidden = true;
+  els.continueBtn.hidden = true;
   updateProgress(0, lesson.sentences.length);
 
   els.micButton.addEventListener('click', () => {
     if (!started) { beginSession(); return; }
     if (engine && engine.getState() === 'fallback-card') engine.continueFallback();
+  });
+
+  els.hintBtn.addEventListener('click', () => {
+    if (engine) engine.speakHint();
+  });
+
+  els.continueBtn.addEventListener('click', () => {
+    if (engine) engine.continueAfterReveal();
   });
 
   els.listenBtn.addEventListener('click', () => {
