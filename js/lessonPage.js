@@ -45,6 +45,19 @@
     els.micButton.className = 'mic-button' + (cls ? ' ' + cls : '');
   }
 
+  /**
+   * Visual-feedback layer on top of the existing state machine — purely
+   * cosmetic, doesn't touch attempts/scoring/advance logic at all. Adds
+   * at most one of is-correct / is-wrong / is-delayed / is-active to the
+   * card wrapper; CSS handles the border, glow, badge and animation per
+   * state, and clears itself back to the plain default whenever a fresh
+   * 'listening' (or fallback) card begins.
+   */
+  function setCardFeedback(cls) {
+    els.card.classList.remove('is-correct', 'is-wrong', 'is-delayed', 'is-active');
+    if (cls) els.card.classList.add(cls);
+  }
+
   function updateProgress(index, total) {
     const pct = Utils.formatPercent(index, total);
     els.progressFill.style.width = `${pct}%`;
@@ -99,6 +112,7 @@
       case 'listening':
         showCard();
         els.card.classList.remove('is-flipped');
+        setCardFeedback('is-active');
         els.continueBtn.hidden = true;
         els.promptText.textContent = ctx.sentence.english;
         els.statusText.textContent = 'Listening…';
@@ -116,6 +130,7 @@
 
       case 'correct':
         setMicClass('is-correct');
+        setCardFeedback('is-correct');
         els.statusText.textContent = 'Correct ✓';
         els.statusText.className = 'card-status is-correct';
         els.hintBtn.hidden = true;
@@ -123,6 +138,7 @@
 
       case 'incorrect':
         setMicClass('is-incorrect');
+        setCardFeedback('is-wrong');
         els.statusText.textContent = 'Try again';
         els.statusText.className = 'card-status is-incorrect';
         els.hintBtn.hidden = false; // still their turn to speak — hint stays available
@@ -130,6 +146,7 @@
 
       case 'failed':
         setMicClass('is-incorrect');
+        setCardFeedback('is-wrong');
         els.statusText.textContent = 'Incorrect';
         els.statusText.className = 'card-status is-incorrect';
         els.hintBtn.hidden = true;
@@ -137,6 +154,7 @@
 
       case 'timeout':
         setMicClass('is-incorrect');
+        setCardFeedback('is-delayed');
         els.statusText.textContent = 'No answer detected';
         els.statusText.className = 'card-status is-incorrect';
         els.hintBtn.hidden = true;
@@ -167,6 +185,7 @@
       case 'fallback-card':
         showCard();
         els.card.classList.remove('is-flipped');
+        setCardFeedback(null);
         els.continueBtn.hidden = true;
         els.promptText.textContent = ctx.sentence.english;
         els.statusText.textContent = 'Speaking practice unavailable — tap to continue';
