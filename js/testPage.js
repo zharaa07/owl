@@ -42,7 +42,12 @@
     mistakeList: document.getElementById('mistake-list'),
     reviewBtn: document.getElementById('review-mistakes-btn'),
     panelUnsupported: document.getElementById('panel-unsupported'),
-    retrainFlow: document.getElementById('retrain-flow')
+    retrainFlow: document.getElementById('retrain-flow'),
+    reviewScreen: document.getElementById('review-screen'),
+    reviewTitle: document.getElementById('review-title'),
+    reviewSubtitle: document.getElementById('review-subtitle'),
+    reviewList: document.getElementById('review-list'),
+    startTestBtn: document.getElementById('start-test-btn')
   };
 
   els.titleLabel.textContent = test.type === 'cumulative'
@@ -321,5 +326,44 @@
     r.status.textContent = 'Tap the mic to begin reviewing';
   }
 
-  renderQuestion();
+  // ---- Review screen: shown before the test starts, built purely from
+  // this test's sentence list (same data source the test itself uses —
+  // no separate content, no test/progress logic touched). ----
+  function renderReviewScreen() {
+    const label = test.type === 'cumulative' ? 'Cumulative Test' : `Test ${test.index}`;
+    els.reviewTitle.textContent = label;
+    els.reviewSubtitle.textContent =
+      `Lessons ${test.lessonRange[0]}–${test.lessonRange[1]} · ${test.sentenceIds.length} sentences`;
+
+    const allSentences = ProgressEngine.sentencesFor(languageCode);
+    const reviewSentences = allSentences.filter(s => test.sentenceIds.includes(s.id));
+
+    // Plain text nodes only — Speech Synthesis is created on demand per
+    // tap (see the delegated click handler below), never up front.
+    els.reviewList.innerHTML = reviewSentences.map(s => `
+      <div class="review-card">
+        <div class="review-card-text">
+          <span class="review-card-target">${s.target}</span>
+          <span class="review-card-pron">${s.pronunciation}</span>
+          <span class="review-card-english">${s.english}</span>
+        </div>
+        <button class="review-listen-btn" data-target="${s.target.replace(/"/g, '&quot;')}" aria-label="Listen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  els.reviewList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.review-listen-btn');
+    if (!btn) return;
+    SpeechEngine.speak(btn.dataset.target, lang.speechRecognitionLocale);
+  });
+
+  els.startTestBtn.addEventListener('click', () => {
+    els.reviewScreen.hidden = true;
+    els.flow.hidden = false;
+    renderQuestion();
+  }, { once: true });
+
+  renderReviewScreen();
 })();
