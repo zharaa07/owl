@@ -20,8 +20,18 @@
     <span class="brand" id="test-title-label">Test</span>
   </div>
 
+  <!-- Review screen — shown before the test starts -->
+  <div id="review-screen">
+    <div class="test-header">
+      <span class="brand" id="review-title">Test</span>
+      <p style="color:var(--ink-soft)" id="review-subtitle">—</p>
+    </div>
+    <div class="review-list" id="review-list"></div>
+    <button class="btn btn-primary" id="start-test-btn" style="width:100%">Start Test</button>
+  </div>
+
   <!-- Question flow -->
-  <div id="test-flow">
+  <div id="test-flow" hidden>
     <div class="test-header">
       <div class="lesson-progress" style="margin:0">
         <div class="bar"><span id="test-progress-fill" style="width:0%"></span></div>
