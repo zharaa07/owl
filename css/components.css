@@ -434,3 +434,49 @@
   margin-top: var(--space-6);
 }
 .action-row .btn { flex: 1; }
+
+/* ---------- Pre-test review screen ---------- */
+#review-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.review-list {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  min-height: 0;
+  max-height: 60vh;
+  padding: var(--space-1) var(--space-1) var(--space-1) 0;
+  margin-bottom: var(--space-5);
+}
+.review-card {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-soft);
+  flex-shrink: 0;
+}
+.review-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.review-card-target { font-family: var(--font-display); font-style: italic; font-size: var(--step-1); }
+.review-card-pron { font-size: var(--step--1); color: var(--sage-deep); }
+.review-card-english { font-size: var(--step--1); color: var(--ink-soft); }
+.review-listen-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
