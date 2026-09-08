@@ -44,6 +44,7 @@
         <button class="mic-button" id="mic-button" aria-label="Microphone">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
         </button>
+        <div class="voice-meter" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         <p class="card-status" id="card-status-text">Get ready…</p>
         <button class="listen-btn" id="hint-btn" hidden aria-label="Hear the correct pronunciation">
           🔄 Hear pronunciation
@@ -69,7 +70,7 @@
       <span class="big-score" id="complete-big-score">0%</span>
       <p class="sub" id="complete-sub">0 / 0 correct</p>
     </div>
-    <div class="result-categories" id="complete-categories" style="grid-template-columns:repeat(2,1fr)">
+    <div class="result-categories" id="complete-categories">
       <div class="cat">
         <span class="cat-num" id="complete-correct-num">0</span>
         <span class="cat-label">Correct</span>
@@ -77,6 +78,10 @@
       <div class="cat">
         <span class="cat-num" id="complete-wrong-num">0</span>
         <span class="cat-label">Wrong</span>
+      </div>
+      <div class="cat">
+        <span class="cat-num" id="complete-time-num">0:00</span>
+        <span class="cat-label">Time</span>
       </div>
     </div>
     <div class="action-row">
