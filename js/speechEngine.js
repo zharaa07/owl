@@ -17,6 +17,7 @@ const SpeechEngine = (function () {
   let onResultCb = null;
   let onErrorCb = null;
   let currentLocale = null;
+  let cachedVoices = [];
 
   function supported() {
     return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -24,6 +25,38 @@ const SpeechEngine = (function () {
 
   function ttsSupported() {
     return 'speechSynthesis' in window;
+  }
+
+  function refreshVoices() {
+    if (!ttsSupported()) return;
+    cachedVoices = window.speechSynthesis.getVoices() || [];
+  }
+
+  if (typeof window !== 'undefined' && ttsSupported()) {
+    refreshVoices();
+    // Chrome (and some others) populate the voice list asynchronously —
+    // getVoices() can return [] on the very first call.
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+  }
+
+  /**
+   * Best available voice for a locale: an exact locale match (es-ES) over
+   * a same-language match (any es-*), preferring a non-local/network voice
+   * when there's a choice — those are typically the higher-quality ones.
+   * Returns null if nothing matches (caller just falls back to the
+   * browser's own default for utter.lang).
+   */
+  function pickBestVoice(locale) {
+    if (!cachedVoices.length) refreshVoices();
+    if (!cachedVoices.length) return null;
+    const lang = locale.toLowerCase();
+    const langPrefix = lang.split('-')[0];
+    const exact = cachedVoices.filter(v => v.lang.toLowerCase() === lang);
+    const sameLanguage = cachedVoices.filter(v => v.lang.toLowerCase().startsWith(langPrefix));
+    const pool = exact.length ? exact : sameLanguage;
+    if (!pool.length) return null;
+    const remote = pool.find(v => v.localService === false);
+    return remote || pool[0];
   }
 
   function build(locale) {
@@ -37,7 +70,8 @@ const SpeechEngine = (function () {
     rec.onresult = (event) => {
       const result = event.results[event.results.length - 1];
       const transcripts = Array.from(result).map(alt => alt.transcript);
-      if (onResultCb) onResultCb(transcripts);
+      const confidence = result[0] ? result[0].confidence : undefined;
+      if (onResultCb) onResultCb(transcripts, confidence);
     };
 
     rec.onerror = (event) => {
@@ -128,6 +162,14 @@ const SpeechEngine = (function () {
 
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = locale;
+
+      const voice = pickBestVoice(locale);
+      if (voice) utter.voice = voice;
+
+      const tuning = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.tts) || {};
+      utter.rate = tuning.rate || 1;
+      utter.pitch = tuning.pitch != null ? tuning.pitch : 1;
+      utter.volume = tuning.volume != null ? tuning.volume : 1;
 
       let done = false;
       let fallbackTimer = null;
