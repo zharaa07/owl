@@ -117,8 +117,34 @@
     document.getElementById('trail').innerHTML = html;
   }
 
+  // ---- Level badge + per-level progress bars ----
+  // Purely additive to the dashboard; reads only the new curriculum
+  // metadata (level/unit) and does nothing if content doesn't carry it.
+  function renderLevelBadge() {
+    const badge = document.getElementById('level-badge');
+    const current = ProgressEngine.getCurrentLevelAndUnit(languageCode);
+    if (!current.level) { badge.hidden = true; return; }
+    document.getElementById('level-code').textContent = current.level;
+    document.getElementById('level-unit-name').textContent =
+      current.isComplete ? 'All units complete' : (current.unitName || '');
+  }
+
+  function renderLevelProgress() {
+    const section = document.getElementById('level-progress-section');
+    const levels = ProgressEngine.getLevelProgress(languageCode);
+    if (!levels.length) { section.hidden = true; return; }
+    section.innerHTML = levels.map(l => `
+      <div class="lesson-progress" style="margin-bottom:var(--space-3)">
+        <span class="count" style="width:2.4em;flex:none">${l.level}</span>
+        <div class="bar"><span style="width:${l.percent}%"></span></div>
+        <span class="count">${l.percent}%</span>
+      </div>`).join('');
+  }
+
   renderHeader();
   renderStats();
+  renderLevelBadge();
+  renderLevelProgress();
   renderContinueCta();
   renderTrail();
 })();
