@@ -39,6 +39,7 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     correctCount: 0,
     wrongCount: 0,
     mistakes: [],
+    startedAt: null,
     handlers: handlers || {}
   };
 
@@ -78,6 +79,7 @@ function createLessonEngine(sentences, languageConfig, handlers) {
   }
 
   function start() {
+    state.startedAt = Date.now();
     if (!SpeechEngine.supported()) {
       beginFallbackCard();
       return;
@@ -102,13 +104,13 @@ function createLessonEngine(sentences, languageConfig, handlers) {
     // SpeechEngine auto-restarts recognition on its own.
   }
 
-  function handleSpeechResult(transcripts) {
+  function handleSpeechResult(transcripts, confidence) {
     if (state.current !== 'listening') return; // ignore stray results mid-transition
     clearSilenceTimer(); // the user said something — no longer silent
     setState('processing', cardContext());
 
     const sentence = currentSentence();
-    const matched = transcripts.some(t => Utils.matchesAnswer(t, sentence.answers));
+    const matched = transcripts.some(t => Utils.matchesAnswer(t, sentence.answers, confidence));
     ProgressStorage.recordAttempt(sentence.id, matched);
 
     if (matched) onCorrect(sentence);
@@ -217,7 +219,8 @@ function createLessonEngine(sentences, languageConfig, handlers) {
       total: state.sentences.length,
       correctCount: state.correctCount,
       wrongCount: state.wrongCount,
-      mistakes: state.mistakes.slice()
+      mistakes: state.mistakes.slice(),
+      timeTakenMs: state.startedAt ? Date.now() - state.startedAt : 0
     });
   }
 
