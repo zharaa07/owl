@@ -26,6 +26,7 @@
     completeSub: document.getElementById('complete-sub'),
     completeCorrectNum: document.getElementById('complete-correct-num'),
     completeWrongNum: document.getElementById('complete-wrong-num'),
+    completeTimeNum: document.getElementById('complete-time-num'),
     reviewMistakesBtn: document.getElementById('review-mistakes-btn'),
     nextLessonBtn: document.getElementById('next-lesson-btn'),
     previewScreen: document.getElementById('lesson-review-screen'),
@@ -105,7 +106,6 @@
     if (!btn) return;
     SpeechEngine.speak(btn.dataset.target, lang.ttsLocale);
   });
-
 
   function onStateChange(state, ctx) {
     switch (state) {
@@ -202,6 +202,13 @@
     }
   }
 
+  function formatDuration(ms) {
+    const totalSeconds = Math.max(0, Math.round(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+
   function renderCompletion(ctx) {
     showComplete();
     const total = ctx.correctCount + ctx.wrongCount;
@@ -210,6 +217,7 @@
     els.completeSub.textContent = `${ctx.correctCount} / ${ctx.total} correct`;
     els.completeCorrectNum.textContent = ctx.correctCount;
     els.completeWrongNum.textContent = ctx.wrongCount;
+    els.completeTimeNum.textContent = formatDuration(ctx.timeTakenMs || 0);
 
     if (ctx.mistakes && ctx.mistakes.length) {
       els.reviewMistakesBtn.hidden = false;
