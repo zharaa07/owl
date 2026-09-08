@@ -227,7 +227,7 @@
   max-width: 420px;
   min-height: 340px;
   transform-style: preserve-3d;
-  transition: transform var(--dur-slow) var(--ease);
+  transition: transform var(--dur-flip) var(--ease);
 }
 .sentence-card.is-flipped { transform: rotateY(180deg); }
 
@@ -339,6 +339,7 @@
 .card-english-echo { color: var(--ink-soft); font-size: var(--step-0); }
 
 .mic-button {
+  position: relative;
   width: 84px; height: 84px;
   border-radius: 50%;
   background: var(--marigold);
@@ -351,9 +352,21 @@
 }
 .mic-button svg { width: 34px; height: 34px; }
 .mic-button.is-listening { animation: pulse-ring 1.8s ease-out infinite; }
-.mic-button.is-correct { background: var(--sage); }
+/* A second, delayed ripple layered behind the first for a fuller,
+   more "actively listening" feel — still a single lightweight CSS
+   animation, no extra JS or DOM work. */
+.mic-button.is-listening::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: pulse-ring 1.8s ease-out infinite;
+  animation-delay: 0.6s;
+}
+.mic-button.is-correct { background: var(--sage); animation: mic-pop var(--dur-feedback) var(--ease); }
 .mic-button.is-incorrect { background: var(--clay); animation: shake 320ms var(--ease); }
-.mic-button.is-processing { opacity: 0.6; }
+.mic-button.is-processing { animation: processing-breathe 900ms ease-in-out infinite; }
 
 @keyframes pulse-ring {
   0% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0.45); }
@@ -364,6 +377,45 @@
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }
   75% { transform: translateX(6px); }
+}
+@keyframes mic-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes processing-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.85; }
+}
+
+/* Simulated live voice-level meter — purely decorative, tied to the mic's
+   own state class via a sibling selector, so no extra JS/state is needed
+   and no real audio analysis (getUserMedia/AnalyserNode) ever runs. Only
+   animates while actually listening; sits flat and invisible otherwise. */
+.voice-meter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  height: 20px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.mic-button.is-listening ~ .voice-meter { opacity: 1; }
+.voice-meter span {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--marigold);
+  animation: voice-bar 900ms ease-in-out infinite;
+}
+.voice-meter span:nth-child(1) { height: 6px;  animation-delay: 0ms; }
+.voice-meter span:nth-child(2) { height: 13px; animation-delay: 120ms; }
+.voice-meter span:nth-child(3) { height: 20px; animation-delay: 240ms; }
+.voice-meter span:nth-child(4) { height: 13px; animation-delay: 360ms; }
+.voice-meter span:nth-child(5) { height: 6px;  animation-delay: 480ms; }
+@keyframes voice-bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
 }
 
 .card-status {
