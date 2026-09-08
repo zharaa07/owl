@@ -50,6 +50,22 @@ const APP_CONFIG = {
   // move on) instead of waiting forever.
   silenceTimeoutMs: 5000,
 
+  // Text-to-Speech tuning applied to every SpeechSynthesis utterance
+  // (lesson reveals, the 🔄 hint, "Hear it again", review-screen listen
+  // buttons, listening questions in tests). Slightly slower than a
+  // browser's default rate reads as clearer and more deliberate for a
+  // learner rather than rushed.
+  tts: {
+    rate: 0.92,
+    pitch: 1,
+    volume: 1
+  },
+
+  // Speaking/recall answers below this normalized text-similarity ratio
+  // are rejected even after the fuzzy-match fallback kicks in (see
+  // Utils.matchesAnswer). 1.0 = identical strings.
+  fuzzyMatchThreshold: 0.88,
+
   // Achievement thresholds (sentence-count based ones use SENTENCES.length
   // at unlock-check time, so they too scale with content automatically).
   achievements: [
