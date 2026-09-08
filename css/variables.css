@@ -56,8 +56,9 @@
   --dur-med: 320ms;
   --dur-slow: 520ms;
   --dur-feedback: 380ms;
+  --dur-flip: 460ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur-fast: 0ms; --dur-med: 0ms; --dur-slow: 0ms; --dur-feedback: 0ms; }
+  :root { --dur-fast: 0ms; --dur-med: 0ms; --dur-slow: 0ms; --dur-feedback: 0ms; --dur-flip: 0ms; }
 }
