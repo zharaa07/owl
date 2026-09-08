@@ -193,6 +193,105 @@ const ProgressEngine = (function () {
     return APP_CONFIG.achievements.filter(a => a.check(progress));
   }
 
+  // ---- Curriculum metadata (level / unit) ---------------------------
+  // Purely additive: these read the optional level/unit fields sentences
+  // may carry (see data.js) but never affect lesson/test generation or
+  // unlocking above, which stay keyed on the flat `lesson` number alone.
+
+  /** Units derived from whichever sentences actually carry a `.unit` field. */
+  function getUnits(languageCode) {
+    const sentences = sentencesFor(languageCode);
+    const byUnit = new Map();
+    sentences.forEach(s => {
+      if (s.unit == null) return; // content without unit metadata is simply skipped
+      if (!byUnit.has(s.unit)) byUnit.set(s.unit, { unit: s.unit, level: s.level, lessons: new Set(), sentenceIds: [] });
+      const u = byUnit.get(s.unit);
+      u.lessons.add(s.lesson);
+      u.sentenceIds.push(s.id);
+    });
+    const unitNumbers = Array.from(byUnit.keys()).sort((a, b) => a - b);
+    return unitNumbers.map(n => {
+      const u = byUnit.get(n);
+      const meta = (typeof UNITS !== 'undefined') ? UNITS.find(x => x.unit === n) : null;
+      const lessonNumbers = Array.from(u.lessons).sort((a, b) => a - b);
+      return {
+        unit: n,
+        name: (meta && meta.name) || `Unit ${n}`,
+        level: u.level,
+        lessonNumbers,
+        sentenceIds: u.sentenceIds,
+        isComplete: lessonNumbers.every(num => isLessonComplete(languageCode, num))
+      };
+    });
+  }
+
+  /** Per-level completion (lesson-count based), in LEVELS' display order when available. */
+  function getLevelProgress(languageCode) {
+    const lessons = getLessons(languageCode);
+    const byLevel = new Map();
+    lessons.forEach(lesson => {
+      const level = lesson.sentences[0] && lesson.sentences[0].level;
+      if (!level) return; // lessons without level metadata are simply excluded
+      if (!byLevel.has(level)) byLevel.set(level, { total: 0, completed: 0 });
+      const entry = byLevel.get(level);
+      entry.total += 1;
+      if (ProgressStorage.isLessonComplete(lesson.key)) entry.completed += 1;
+    });
+    const order = (typeof LEVELS !== 'undefined') ? LEVELS.map(l => l.code) : Array.from(byLevel.keys());
+    return order.filter(code => byLevel.has(code)).map(code => {
+      const e = byLevel.get(code);
+      const meta = (typeof LEVELS !== 'undefined') ? LEVELS.find(l => l.code === code) : null;
+      return {
+        level: code,
+        name: (meta && meta.name) || code,
+        completedLessons: e.completed,
+        totalLessons: e.total,
+        percent: Utils.formatPercent(e.completed, e.total)
+      };
+    });
+  }
+
+  /** What level/unit is the user's next lesson in? (null once everything is complete.) */
+  function getCurrentLevelAndUnit(languageCode) {
+    const next = getNextLesson(languageCode);
+    const reference = next ? next.sentences[0] : sentencesFor(languageCode).slice(-1)[0];
+    if (!reference) return { level: null, unit: null, isComplete: !next };
+    const unitMeta = (typeof UNITS !== 'undefined') ? UNITS.find(u => u.unit === reference.unit) : null;
+    return {
+      level: reference.level || null,
+      unit: reference.unit || null,
+      unitName: unitMeta ? unitMeta.name : null,
+      isComplete: !next
+    };
+  }
+
+  /**
+   * Content-authoring aid (not a runtime gate): flags sentences whose
+   * target text repeats an earlier one without being marked as an
+   * intentional spaced-repetition review (`intentionalRepeat: true` on
+   * the later entry). Call from a console when adding content; nothing
+   * in the lesson/test flow calls this automatically.
+   */
+  function validateCurriculum(languageCode) {
+    const sentences = sentencesFor(languageCode);
+    const seenTargets = new Map();
+    const duplicates = [];
+    sentences.forEach(s => {
+      const key = Utils.normalize(s.target);
+      if (seenTargets.has(key) && !s.intentionalRepeat) {
+        duplicates.push({ id: s.id, target: s.target, duplicateOfId: seenTargets.get(key) });
+      } else if (!seenTargets.has(key)) {
+        seenTargets.set(key, s.id);
+      }
+    });
+    if (duplicates.length) {
+      console.warn(`Curriculum check: ${duplicates.length} unintentional duplicate sentence(s)`, duplicates);
+    } else {
+      console.info('Curriculum check: no unintentional duplicate sentences found.');
+    }
+    return duplicates;
+  }
+
   return {
     sentencesFor,
     getLessons,
@@ -207,6 +306,10 @@ const ProgressEngine = (function () {
     getOverallProgress,
     getNextLesson,
     checkAchievements,
-    lessonKey
+    lessonKey,
+    getUnits,
+    getLevelProgress,
+    getCurrentLevelAndUnit,
+    validateCurriculum
   };
 })();
